@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends xvfb \
 
 # --- Install nerf-prep -------------------------------------------------------
 COPY . /opt/nerf-prep
-RUN pip install --no-cache-dir /opt/nerf-prep
+RUN python -m pip install --no-cache-dir /opt/nerf-prep
 
 WORKDIR /workspace
 COPY docker-entrypoint.sh /usr/local/bin/nerf-prep-entry
