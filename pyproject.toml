@@ -1,0 +1,29 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "nerf-prep"
+version = "0.1.0"
+description = "One-command, Dockerized COLMAP -> Nerfstudio dataset prep with sane defaults baked in."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Dace" }]
+requires-python = ">=3.10"
+dependencies = ["typer>=0.12"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.5"]
+
+[project.scripts]
+nerf-prep = "nerf_prep.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/Daceyyreal/nerf-prep"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/nerf_prep"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
