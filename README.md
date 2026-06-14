@@ -2,6 +2,7 @@
 
 **One command, a folder of photos in, a Nerfstudio-ready dataset out — no install hell.**
 
+[![Release](https://img.shields.io/github/v/release/Daceyyreal/nerf-prep?sort=semver)](https://github.com/Daceyyreal/nerf-prep/releases/latest)
 [![CI](https://github.com/Daceyyreal/nerf-prep/actions/workflows/ci.yml/badge.svg)](https://github.com/Daceyyreal/nerf-prep/actions)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
