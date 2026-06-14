@@ -7,7 +7,9 @@ from pathlib import Path
 
 import pytest
 
-from nerf_prep import engine, inputs, summary
+from typer.testing import CliRunner
+
+from nerf_prep import cli, engine, inputs, summary
 
 
 # --- matcher selection ---------------------------------------------------
@@ -47,6 +49,71 @@ def test_command_omits_no_gpu_with_gpu():
 def test_video_subcommand():
     cmd = engine.build_command(Path("v.mp4"), Path("out"), matcher="sequential", capture="video")
     assert cmd[1] == "video"
+
+
+# --- GPU -> CPU fallback (cli) -------------------------------------------
+
+def test_gpu_failure_falls_back_to_cpu(tmp_path: Path, monkeypatch):
+    imgs = tmp_path / "imgs"
+    imgs.mkdir()
+    for i in range(25):
+        (imgs / f"IMG_{i}.jpg").write_bytes(b"x")
+    out = tmp_path / "out"
+
+    monkeypatch.setattr(cli.engine, "detect_gpu", lambda: True)
+
+    calls: list[list[str]] = []
+
+    class _R:
+        def __init__(self, rc: int) -> None:
+            self.returncode = rc
+
+    def fake_run(cmd, *a, **k):
+        calls.append(cmd)
+        return _R(1) if len(calls) == 1 else _R(0)  # GPU run fails, CPU retry succeeds
+
+    monkeypatch.setattr(cli.subprocess, "run", fake_run)
+
+    class _S:
+        registered, n_input, rate, healthy = 25, 25, 1.0, True
+
+        def next_command(self) -> str:
+            return "ns-train splatfacto --data out"
+
+    monkeypatch.setattr(cli.summary, "summarize", lambda *a, **k: _S())
+
+    res = CliRunner().invoke(cli.app, ["run", str(imgs), str(out), "--gpu", "auto"])
+
+    assert res.exit_code == 0, res.output
+    assert len(calls) == 2  # it retried instead of giving up
+    assert "--no-gpu" not in calls[0]  # first attempt used the GPU
+    assert "--no-gpu" in calls[1]  # retry was CPU
+    assert "falling back to CPU" in res.output
+
+
+def test_explicit_gpu_on_does_not_fall_back(tmp_path: Path, monkeypatch):
+    imgs = tmp_path / "imgs"
+    imgs.mkdir()
+    for i in range(25):
+        (imgs / f"IMG_{i}.jpg").write_bytes(b"x")
+    out = tmp_path / "out"
+
+    calls: list[list[str]] = []
+
+    class _R:
+        def __init__(self, rc: int) -> None:
+            self.returncode = rc
+
+    def fake_run(cmd, *a, **k):
+        calls.append(cmd)
+        return _R(1)
+
+    monkeypatch.setattr(cli.subprocess, "run", fake_run)
+
+    res = CliRunner().invoke(cli.app, ["run", str(imgs), str(out), "--gpu", "on"])
+
+    assert res.exit_code != 0  # explicit --gpu on: a GPU failure is a hard error
+    assert len(calls) == 1  # no silent CPU retry when the user forced the GPU
 
 
 # --- input validation ----------------------------------------------------

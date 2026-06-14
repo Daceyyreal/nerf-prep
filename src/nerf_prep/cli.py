@@ -56,6 +56,21 @@ def run(
 
     typer.echo("Running: " + " ".join(cmd))
     result = subprocess.run(cmd)
+
+    # GPU COLMAP can crash even when nvidia-smi reports a usable GPU — e.g. the
+    # SiftGPU matcher on small-VRAM or headless cards. When the GPU was selected
+    # automatically, retry once on CPU rather than failing outright.
+    if result.returncode != 0 and use_gpu and gpu == "auto":
+        typer.secho(
+            "GPU run failed — falling back to CPU (--no-gpu) and retrying...",
+            fg=typer.colors.YELLOW,
+        )
+        cmd = engine.build_command(
+            input_path, output_dir, matcher=chosen, downscales=downscales, gpu=False, capture=capture
+        )
+        typer.echo("Running: " + " ".join(cmd))
+        result = subprocess.run(cmd)
+
     if result.returncode != 0:
         typer.secho("ns-process-data failed; see the log above.", fg=typer.colors.RED)
         raise typer.Exit(code=result.returncode)

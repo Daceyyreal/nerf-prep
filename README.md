@@ -26,8 +26,10 @@ docker run --gpus all --ipc=host \
 
 - **Picks the matcher for you** — exhaustive for small unordered photo sets,
   vocab-tree once they get large, sequential for video frames.
-- **GPU/CPU auto-detect** — drops `--no-gpu` automatically when no NVIDIA GPU is
-  visible, so COLMAP still runs (just slower) instead of crashing.
+- **GPU/CPU auto-detect, with CPU fallback** — uses the GPU when `nvidia-smi`
+  reports one, drops `--no-gpu` automatically when none is visible, and **retries
+  on CPU if a GPU COLMAP step fails** (e.g. the SiftGPU matcher on small-VRAM or
+  headless cards) — so the run completes instead of crashing.
 - **Headless by default** — runs inside a virtual framebuffer, so COLMAP's GL/Qt
   feature extractor works on servers and CI.
 - **Pre-empts the input mistakes** — flags double extensions (`IMG.jpg.jpg`),
