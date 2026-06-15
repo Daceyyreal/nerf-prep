@@ -7,6 +7,8 @@
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
+<p align="center"><img src="assets/demo.gif" width="900" alt="nerf-prep demo — one command turns 40 photos into a Nerfstudio dataset, registering 40/40 images"></p>
+
 Getting from raw photos to a trainable 3D Gaussian Splatting / NeRF dataset means
 getting COLMAP and Nerfstudio to cooperate — matching strategy, GPU vs CPU,
 headless display, and a pile of small gotchas that each cost a full re-run.
